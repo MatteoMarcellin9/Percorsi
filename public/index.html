@@ -56,6 +56,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);
 .cat-casera{background:rgba(249,115,22,0.2);color:#fb923c;}
 .cat-rete{background:rgba(168,85,247,0.2);color:#c084fc;}
 .cat-pericolo{background:rgba(239,68,68,0.2);color:#f87171;}
+.cat-bivi{background:rgba(234,179,8,0.2);color:#facc15;}
 .comment-km{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:600;}
 .comment-sub{font-size:11px;color:var(--muted);}
 .comment-text{font-size:13px;line-height:1.5;color:var(--text);}
@@ -105,6 +106,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);
           <option value="casera">🏠 Casera</option>
           <option value="rete">📶 Rete telefonica</option>
           <option value="pericolo">⚠️ Pericolo</option>
+          <option value="bivi">🔀 Bivi di percorso</option>
         </select>
       </div>
       <div>
@@ -143,6 +145,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);
       <button class="filter-btn" onclick="setFilter('casera')" data-filter="casera">🏠 Casera</button>
       <button class="filter-btn" onclick="setFilter('rete')" data-filter="rete">📶 Rete</button>
       <button class="filter-btn" onclick="setFilter('pericolo')" data-filter="pericolo">⚠️ Pericolo</button>
+      <button class="filter-btn" onclick="setFilter('bivi')" data-filter="bivi">🔀 Bivi</button>
     </div>
     <div id="commentsList"></div>
   </div>
@@ -162,13 +165,14 @@ const SUBCATS = {
   casera:   ["Buono stato","Stato mediocre","Diruto","Posti letto interni","Porta aperta","Porta chiusa a chiave","Altro"],
   rete:     ["Segnale pieno","Segnale debole","Nessun segnale","WiFi disponibile","Solo dati","Solo chiamate","Altro"],
   pericolo: ["Sentiero franato","Ramo caduto","Neve/ghiaccio","Animali","Tratto esposto","Segnalare alla protezione civile","Altro"],
+  bivi:     ["Bivio segnalato","Bivio non segnalato","Direzione chiara","Direzione ambigua","Segnaletica mancante","Cartello presente","Altro"],
 };
 
 const CAT_COLORS = {
-  sentiero:"#3b82f6", acqua:"#22c55e", casera:"#f97316", rete:"#a855f7", pericolo:"#ef4444"
+  sentiero:"#3b82f6", acqua:"#22c55e", casera:"#f97316", rete:"#a855f7", pericolo:"#ef4444", bivi:"#eab308"
 };
 const CAT_EMOJI = {
-  sentiero:"🥾", acqua:"💧", casera:"🏠", rete:"📶", pericolo:"⚠️"
+  sentiero:"🥾", acqua:"💧", casera:"🏠", rete:"📶", pericolo:"⚠️", bivi:"🔀"
 };
 
 let currentRoute = ROUTES[0];
