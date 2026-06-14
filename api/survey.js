@@ -15,9 +15,8 @@ async function loadComments() {
 }
 
 async function saveComments(comments, sha) {
-  const content = btoa(unescape(encodeURIComponent(
-    JSON.stringify({ comments, updated: new Date().toISOString() })
-  )));
+  const jsonStr = JSON.stringify({ comments, updated: new Date().toISOString() });
+  const content = Buffer.from(jsonStr, 'utf-8').toString('base64');
   const body = { message: "Update survey comments", content };
   if (sha) body.sha = sha;
   const r = await fetch(
