@@ -150,8 +150,10 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);
 
 <script>
 const ROUTES = [
-  { id:"crosetta-venal",  name:"Casera Crosetta e Casera Venal",          color:"#3b82f6", totalKm:3.8 },
-  { id:"stabali-scalet",  name:"Casera Stabali e Casera Scalet Bassa Venal", color:"#22c55e", totalKm:5.5 },
+  { id:"crosetta-venal",  name:"Casera Crosetta e Casera Venal",             color:"#3b82f6", totalKm:3.8  },
+  { id:"stabali-scalet",  name:"Casera Stabali e Casera Scalet Bassa Venal", color:"#22c55e", totalKm:5.5  },
+  { id:"gruppo-b",        name:"Gruppo B",                                   color:"#f97316", totalKm:7.8  },
+  { id:"gruppo-a",        name:"Gruppo A",                                   color:"#a855f7", totalKm:12.3 },
 ];
 
 const SUBCATS = {
@@ -345,6 +347,55 @@ async function deleteComment(id){
 }
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// Profilo altimetrico
+function initElevChart(gpx, color){
+  if(elevChart){ elevChart.destroy(); elevChart = null; }
+  const canvas = document.getElementById('elev-chart');
+  if(!canvas || !gpx) return;
+
+  const step = Math.max(1, Math.floor(gpx.length/200));
+  const sampled = [];
+  for(let i=0;i<gpx.length;i+=step) sampled.push(gpx[i]);
+  if(sampled[sampled.length-1] !== gpx[gpx.length-1]) sampled.push(gpx[gpx.length-1]);
+
+  const labels = sampled.map(function(p){ return (p[3]/1000).toFixed(1); });
+  const eles   = sampled.map(function(p){ return p[2]; });
+  const minE   = Math.min.apply(null, eles);
+  const maxE   = Math.max.apply(null, eles);
+
+  elevChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: eles,
+        borderColor: color,
+        borderWidth: 2,
+        fill: true,
+        backgroundColor: color + '33',
+        pointRadius: 0,
+        tension: 0.3,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          title: function(ctx){ return 'km ' + ctx[0].label; },
+          label: function(ctx){ return Math.round(ctx.raw) + 'm slm'; }
+        }}
+      },
+      scales: {
+        x: { ticks:{color:'#7d8590',font:{size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.05)'}, title:{display:true,text:'km',color:'#7d8590',font:{size:9}} },
+        y: { ticks:{color:'#7d8590',font:{size:9},maxTicksLimit:5,callback:function(v){return v+'m';}}, grid:{color:'rgba(255,255,255,0.07)'}, suggestedMin: minE-50, suggestedMax: maxE+50 }
+      }
+    }
+  });
+}
 
 // Posizione personale dal GPS del telefono
 let myLocationMarker = null;
