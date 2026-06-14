@@ -357,7 +357,8 @@ async function editComment(id){
   div.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;width:100%;max-width:400px;">
       <div style="font-weight:700;margin-bottom:14px;">✏️ Modifica categoria</div>
-      <div style="margin-bottom:8px;font-size:12px;color:var(--muted);">km ${c.km} — ${c.text.slice(0,60)}...</div>
+      <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;">Testo</label>
+      <textarea id="edit-text" style="width:100%;background:#fff;color:#111;border:1px solid var(--border);border-radius:6px;padding:8px;margin:6px 0 10px;font-size:13px;min-height:80px;resize:vertical;font-family:Inter,sans-serif;">${c.text.replace(/`/g,"'")}</textarea>
       <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;">Categoria</label>
       <select id="edit-cat" style="width:100%;background:#fff;color:#111;border:1px solid var(--border);border-radius:6px;padding:8px;margin:6px 0 10px;font-size:13px;" onchange="updateEditSubs()">
         ${catOptions}
@@ -385,13 +386,15 @@ function updateEditSubs(currentSub){
 }
 
 async function saveEditComment(id, btn){
-  const cat = document.getElementById('edit-cat').value;
-  const sub = document.getElementById('edit-sub').value;
+  const cat  = document.getElementById('edit-cat').value;
+  const sub  = document.getElementById('edit-sub').value;
+  const text = document.getElementById('edit-text').value.trim();
+  if(!text){ alert('Il testo non può essere vuoto'); return; }
   btn.disabled = true; btn.textContent = '...';
   const r = await fetch('/api/survey', {
     method: 'PATCH',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({id, category: cat, subcategory: sub})
+    body: JSON.stringify({id, category: cat, subcategory: sub, text})
   });
   const d = await r.json();
   if(d.ok){
