@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Survey Sentieri</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@500&display=swap');
@@ -68,6 +69,8 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);
 .leaflet-popup-content-wrapper{background:rgba(22,27,34,0.97);border:1px solid var(--border);color:var(--text);border-radius:8px;}
 .leaflet-popup-tip{background:rgba(22,27,34,0.97);}
 .leaflet-popup-content{margin:10px 12px;font-family:'Inter',sans-serif;font-size:12px;}
+.loc-btn{position:absolute;top:8px;right:8px;z-index:500;background:rgba(22,27,34,0.9);border:1px solid var(--border);color:var(--text);font-size:12px;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;}
+.loc-btn:hover{background:rgba(59,130,246,0.3);border-color:var(--accent);}
 </style>
 </head>
 <body>
@@ -77,8 +80,16 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);
 </header>
 <main>
   <div class="map-section">
-    <div id="map"></div>
+    <div id="map" style="position:relative;">
+      <button class="loc-btn" onclick="centerOnMe()" title="La mia posizione">📍 Dove sono</button>
+    </div>
 
+  </div>
+  <div class="elevation-wrap" style="padding:12px 14px;border-top:1px solid var(--border);background:var(--surface);border-radius:0 0 12px 12px;margin-top:-14px;margin-bottom:14px;">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Profilo altimetrico</div>
+    <div style="position:relative;height:140px;">
+      <canvas id="elev-chart"></canvas>
+    </div>
   </div>
 
   <div class="comment-form">
@@ -160,7 +171,7 @@ let currentRoute = ROUTES[0];
 let gpxData = {};
 let allComments = [];
 let currentFilter = "all";
-let map = null;
+let map = null, elevChart = null;
 let commentMarkers = [];
 
 // Init tabs
@@ -181,6 +192,7 @@ async function selectRoute(route, btn){
   btn.classList.add("active");
   await loadGPX(route);
   renderMap();
+  initElevChart(gpxData[route.id], route.color);
   renderComments();
 }
 
@@ -332,11 +344,42 @@ async function deleteComment(id){
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+// Posizione personale dal GPS del telefono
+let myLocationMarker = null;
+function centerOnMe(){
+  if(!navigator.geolocation){ alert('GPS non disponibile'); return; }
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      if(map) map.setView([lat,lng], 15);
+      if(myLocationMarker) map.removeLayer(myLocationMarker);
+      const icon = L.divIcon({
+        html:'<div style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 8px #3b82f6"></div>',
+        iconSize:[16,16],iconAnchor:[8,8],className:''
+      });
+      myLocationMarker = L.marker([lat,lng],{icon}).addTo(map)
+        .bindPopup('<strong>Sei qui</strong><br>'+lat.toFixed(5)+', '+lng.toFixed(5))
+        .openPopup();
+    },
+    function(err){ alert('Posizione non disponibile: '+err.message); },
+    {enableHighAccuracy:true,timeout:10000}
+  );
+}
+
+// Subcategorie dinamiche
+function updateSubcats(){
+  const cat = document.getElementById('fCat').value;
+  const sub = document.getElementById('fSub');
+  sub.innerHTML = SUBCATS[cat].map(function(s){return '<option>'+s+'</option>';}).join('');
+}
+updateSubcats();
+
 // Init
 async function init(){
   initTabs();
   await loadGPX(currentRoute);
   renderMap();
+  initElevChart(gpxData[currentRoute.id], currentRoute.color);
   await loadComments();
 }
 init();
