@@ -355,12 +355,31 @@ function centerOnMe(){
       const lat = pos.coords.latitude, lng = pos.coords.longitude;
       if(map) map.setView([lat,lng], 15);
       if(myLocationMarker) map.removeLayer(myLocationMarker);
+
+      // Trova il punto GPX più vicino sulla traccia attuale
+      const gpx = gpxData[currentRoute.id];
+      let nearestKm = null;
+      if(gpx){
+        let best=0, bestD=Infinity;
+        gpx.forEach(function(p,i){
+          const d=(p[0]-lat)*(p[0]-lat)+(p[1]-lng)*(p[1]-lng);
+          if(d<bestD){bestD=d;best=i;}
+        });
+        nearestKm = (gpx[best][3]/1000).toFixed(1);
+        // Auto-compila il campo km nel form
+        const kmField = document.getElementById('fKm');
+        if(kmField) kmField.value = nearestKm;
+      }
+
       const icon = L.divIcon({
         html:'<div style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 8px #3b82f6"></div>',
         iconSize:[16,16],iconAnchor:[8,8],className:''
       });
+      const popupText = nearestKm
+        ? '<strong>📍 Sei qui</strong><br>km '+nearestKm+' sul percorso<br><small>'+lat.toFixed(5)+', '+lng.toFixed(5)+'</small>'
+        : '<strong>📍 Sei qui</strong><br>'+lat.toFixed(5)+', '+lng.toFixed(5);
       myLocationMarker = L.marker([lat,lng],{icon}).addTo(map)
-        .bindPopup('<strong>Sei qui</strong><br>'+lat.toFixed(5)+', '+lng.toFixed(5))
+        .bindPopup(popupText)
         .openPopup();
     },
     function(err){ alert('Posizione non disponibile: '+err.message); },
